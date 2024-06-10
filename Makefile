@@ -35,9 +35,6 @@ INCLUDES = -I$(HDF5_DIR)/include -I$(FFT_DIR)/include -I$(ZLIB_DIR)/include -I$(
 # Library directories
 LIB_PATHS = -L$(HDF5_DIR)/lib -L$(FFT_DIR)/lib -L$(ZLIB_DIR)/lib -L$(LIBOMP_DIR)/lib
 
-# Git hash of release
-GIT_HASH = -D__KWAVE_GIT_HASH__=\"0ba023063e3f29685e1e346f56883378d961f9f1\"
-
 # Compiler flags and header files directories
 CXXFLAGS = $(CPU_FLAGS) $(OPT) $(DEBUG) $(WARNING) $(PROFILE) \
            $(OPENMP) $(CPP_STD)                               \
