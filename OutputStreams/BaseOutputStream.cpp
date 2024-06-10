@@ -34,7 +34,8 @@
 #include <immintrin.h>
 #else
 #include "sse2neon.h"
-#endif#include <limits>
+#endif
+#include <limits>
 
 // Windows build needs to undefine macro MINMAX to support std::limits
 #ifdef _WIN64
