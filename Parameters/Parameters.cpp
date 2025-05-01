@@ -33,6 +33,11 @@
   #include <omp.h>
 #endif
 
+#ifdef __APPLE__
+  #include <sys/sysctl.h>
+  #include <string>
+#endif
+
 #include <exception>
 #include <stdexcept>
 #include <limits>
@@ -672,7 +677,6 @@ std::string Parameters::getProcessorName() const
   // Processor registry
   using ProcessorRegistry = unsigned int[4];
   ProcessorRegistry regs{0 ,0, 0, 0};
-
   auto cpuid = [](unsigned int funcId, unsigned int subFuncId, ProcessorRegistry& regs)
   {
     // Linux build
@@ -691,6 +695,19 @@ std::string Parameters::getProcessorName() const
     // Windows build
     #ifdef _WIN64
       __cpuidex((int*)(regs), int(funcId), int(subFuncId));
+    #endif
+
+    // Apple build
+    #ifdef __APPLE__
+      char buffer[256];
+      size_t bufferSize = sizeof(buffer);
+
+      // Query the processor name using sysctl
+      if (sysctlbyname("machdep.cpu.brand_string", buffer, &bufferSize, nullptr, 0) == 0) {
+        std::memcpy(&regs[0], buffer, std::min(sizeof(regs), bufferSize));
+      } else {
+        regs[0] = regs[1] = regs[2] = regs[3] = 0; // Fallback to zero if sysctl fails
+      }
     #endif
   };
 

@@ -16,7 +16,7 @@ CPU_FLAGS = -m64 -mcpu=apple-m1 -mtune=native
 OPT = -O3 -ffast-math -fassociative-math 
 
 # Debug flags
-DEBUG = -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
+DEBUG = -g -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
 
 # Profile flags
 PROFILE = 

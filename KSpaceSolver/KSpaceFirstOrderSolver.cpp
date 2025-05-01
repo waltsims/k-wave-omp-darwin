@@ -472,6 +472,14 @@ size_t KSpaceFirstOrderSolver::getMemoryUsage() const
 
     return pmc.PeakWorkingSetSize >> 20;
   #endif
+
+  // macOS build
+  #ifdef __APPLE__
+    struct rusage memUsage;
+    getrusage(RUSAGE_SELF, &memUsage);
+
+    return memUsage.ru_maxrss >> 10;
+  #endif
 }// end of getMemoryUsage
 //----------------------------------------------------------------------------------------------------------------------
 

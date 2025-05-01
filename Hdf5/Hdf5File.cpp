@@ -33,8 +33,8 @@
 #include <stdexcept>
 #include <ctime>
 
-// Linux build
-#ifdef __linux__
+// Linux and macOS build
+#if defined(__linux__) || defined(__APPLE__)
   #include <unistd.h>
 #endif
 
@@ -166,7 +166,11 @@ bool Hdf5File::canAccess(const string& fileName)
   #endif
 
   #ifdef _WIN64
-     return (_access_s(fileName.c_str(), 0) == 0 );
+    return (_access_s(fileName.c_str(), 0) == 0);
+  #endif
+
+  #ifdef __APPLE__
+    return (access(fileName.c_str(), F_OK) == 0);
   #endif
 }// end of canAccess
 //----------------------------------------------------------------------------------------------------------------------
