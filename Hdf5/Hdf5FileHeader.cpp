@@ -420,10 +420,10 @@ void Hdf5FileHeader::setHostInfo()
 {
   char hostName[256];
 
-  // Linux build
-  #ifdef __linux__
-    gethostname(hostName, 256);
-  #endif
+// Unix-like systems (Linux and macOS)
+#if defined(__linux__) || defined(__APPLE__)
+  gethostname(hostName, 256);
+#endif
 
   // Windows build
   #ifdef _WIN64
