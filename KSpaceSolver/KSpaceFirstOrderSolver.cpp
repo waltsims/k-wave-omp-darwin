@@ -29,16 +29,14 @@
  * If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/licenses/).
  */
 
-// Linux build
-#ifdef __linux__
+// Unix-like systems (Linux and macOS)
+#ifdef defined(__linux__) || defined(__APPLE__)
   #include <sys/resource.h>
 #elif _WIN64 // Windows build
   #define _USE_MATH_DEFINES
   #include <Windows.h>
   #include <Psapi.h>
   #pragma comment(lib, "Psapi.lib")
-#elif __APPLE__
-  #include <sys/resource.h>
 #endif
 
 #ifdef _OPENMP
