@@ -433,11 +433,6 @@ void Hdf5FileHeader::setHostInfo()
     WSACleanup();
   #endif
 
-  // Apple build
-  #ifdef __APPLE__
-    gethostname(hostName, 256);
-  #endif
-
   mHeaderValues[FileHeaderItems::kHostName]
           = Logger::formatMessage("%s (%s)", hostName, Parameters::getInstance().getProcessorName().c_str());
 }// end of setHostName
