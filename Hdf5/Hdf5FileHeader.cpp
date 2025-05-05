@@ -44,8 +44,8 @@
   #pragma comment(lib, "Ws2_32.lib")
 #endif
 
-// Apple build
-#ifdef __APPLE__
+// Unix-like systems (Linux and macOS)
+#if defined(__linux__) || defined(__APPLE__)
   #include <unistd.h>
 #endif
 
