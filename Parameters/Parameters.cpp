@@ -33,6 +33,11 @@
   #include <omp.h>
 #endif
 
+#ifdef __APPLE__
+  #include <sys/sysctl.h>
+  #include <string>
+#endif
+
 #include <exception>
 #include <stdexcept>
 #include <limits>
@@ -669,47 +674,55 @@ std::string Parameters::getProcessorName() const
 {
   std::string processorName = "";
 
-  // Processor registry
-  using ProcessorRegistry = unsigned int[4];
-  ProcessorRegistry regs{0 ,0, 0, 0};
+  #ifdef __APPLE__
+    char buffer[256];
+    size_t bufferSize = sizeof(buffer);
 
-  auto cpuid = [](unsigned int funcId, unsigned int subFuncId, ProcessorRegistry& regs)
-  {
-    // Linux build
-    #ifdef __linux__
-      asm volatile
-        ("cpuid"
-          : "=a" (regs[0]),
-            "=b" (regs[1]),
-            "=c" (regs[2]),
-            "=d" (regs[3])
-         : "a" (funcId), "c" (subFuncId)
-      );
-     // ECX is set to zero for CPUID function 4
-    #endif
+    // Query the processor name using sysctl
+    if (sysctlbyname("machdep.cpu.brand_string", buffer, &bufferSize, nullptr, 0) == 0) {
+      return std::string(buffer);
+    }
+    return "Unknown MacOS Processor";
+  #else
+    // Processor registry
+    using ProcessorRegistry = unsigned int[4];
+    ProcessorRegistry regs{0 ,0, 0, 0};
+    auto cpuid = [](unsigned int funcId, unsigned int subFuncId, ProcessorRegistry& regs)
+    {
+      // Linux build
+      #ifdef __linux__
+        asm volatile
+          ("cpuid"
+            : "=a" (regs[0]),
+              "=b" (regs[1]),
+              "=c" (regs[2]),
+              "=d" (regs[3])
+          : "a" (funcId), "c" (subFuncId)
+        );
+      // ECX is set to zero for CPUID function 4
+      #endif
 
-    // Windows build
-    #ifdef _WIN64
-      __cpuidex((int*)(regs), int(funcId), int(subFuncId));
-    #endif
-  };
+      // Windows build
+      #ifdef _WIN64
+        __cpuidex((int*)(regs), int(funcId), int(subFuncId));
+      #endif
+    };
 
+    // Get processor brand string
+    // This seems to be working for both Intel & AMD vendors
+    for (unsigned int i = 0x80000002; i < 0x80000005; i++)
+    {
+      cpuid(i, 0, regs);
+      processorName += std::string((const char*)&regs[0], 4);
+      processorName += std::string((const char*)&regs[1], 4);
+      processorName += std::string((const char*)&regs[2], 4);
+      processorName += std::string((const char*)&regs[3], 4);
+    }
 
-  // Get processor brand string
-  // This seems to be working for both Intel & AMD vendors
-  for (unsigned int i = 0x80000002; i < 0x80000005; i++)
-  {
-    cpuid(i, 0, regs);
-    processorName += std::string((const char*)&regs[0], 4);
-    processorName += std::string((const char*)&regs[1], 4);
-    processorName += std::string((const char*)&regs[2], 4);
-    processorName += std::string((const char*)&regs[3], 4);
-  }
-
-  // Remove leading spaces
-  processorName.erase(0, processorName.find_first_not_of(" \t\n"));
-
-  return processorName;
+    // Remove leading spaces
+    processorName.erase(0, processorName.find_first_not_of(" \t\n"));
+    return processorName;
+  #endif
 }//end of getProcessorName
 //----------------------------------------------------------------------------------------------------------------------
 

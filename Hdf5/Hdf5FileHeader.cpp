@@ -44,6 +44,11 @@
   #pragma comment(lib, "Ws2_32.lib")
 #endif
 
+// Unix-like systems (Linux and macOS)
+#if defined(__linux__) || defined(__APPLE__)
+  #include <unistd.h>
+#endif
+
 #include <Hdf5/Hdf5FileHeader.h>
 #include <Parameters/Parameters.h>
 #include <Logger/Logger.h>
@@ -415,17 +420,16 @@ void Hdf5FileHeader::setHostInfo()
 {
   char hostName[256];
 
-  //Linux build
-  #ifdef __linux__
-    gethostname(hostName, 256);
-  #endif
+// Unix-like systems (Linux and macOS)
+#if defined(__linux__) || defined(__APPLE__)
+  gethostname(hostName, 256);
+#endif
 
-  //Windows build
+  // Windows build
   #ifdef _WIN64
     WSADATA wsaData;
     WSAStartup(MAKEWORD(2, 2), &wsaData);
-	  gethostname(hostName, 256);
-
+    gethostname(hostName, 256);
     WSACleanup();
   #endif
 
