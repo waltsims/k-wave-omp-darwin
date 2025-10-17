@@ -49,39 +49,39 @@ libraries.
 First [install x-code](https://developer.apple.com/xcode/). X-Code installs the Apple Clang compiler for M1.
 
 The code also relies on several libraries that are to be installed before
-compiling. A recommended package manager on Mac is [Homebrew](https://brew.sh/):
+compiling. We now use [vcpkg](https://github.com/microsoft/vcpkg) to supply the
+dependencies in a cross-platform way. Clone vcpkg (once) and bootstrap it:
 
- 1. HDF5 library - Mandatory I/O library, version 1.8.x,
-         https://portal.hdfgroup.org/display/support/HDF5+1.8.21,
-         or version 1.10.x.
-         https://www.hdfgroup.org/downloads/hdf5/source-code/.
- 1. FFTW library - Optional library for FFT, version 3.3.x,
-         http://www.fftw.org/.
- 1. MKL library  - Optional library for FFT, version 2018 or higher
-         http://software.intel.com/en-us/intel-composer-xe/.
- 1. OpenMP - Manditory library for shared memory parallel execution.
- 1. zlib - Manditory library for compression with HD5F.
-
-To install these libraries with Homebrew, run the following command:
 ```bash
-brew install hdf5 fftw zlib libomp
+git clone --depth 1 https://github.com/microsoft/vcpkg "$HOME/vcpkg"
+"$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
 ```
 
-With the prerequisites ready, build the project using CMake:
+Install the required libraries (use `x64-osx` instead of `arm64-osx` on Intel Macs):
+
+```bash
+$HOME/vcpkg/vcpkg install \
+  hdf5[szip,hl]:arm64-osx \
+  fftw3[float,openmp]:arm64-osx \
+  zlib:arm64-osx \
+  libomp:arm64-osx
+```
+
+With the prerequisites ready, build the project using CMake and the vcpkg toolchain:
 
 ```bash
 mkdir -p build
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_PREFIX_PATH="$(brew --prefix hdf5);$(brew --prefix fftw);$(brew --prefix zlib);$(brew --prefix libomp)"
+  -DCMAKE_TOOLCHAIN_FILE="$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake"
 cmake --build build --parallel
 ```
 
-If CMake cannot locate OpenMP automatically, pass the Homebrew prefix explicitly:
+If CMake cannot locate OpenMP automatically, set the `OpenMP_ROOT` to the vcpkg install directory:
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-  -DOpenMP_ROOT="$(brew --prefix libomp)" \
-  -DCMAKE_PREFIX_PATH="$(brew --prefix hdf5);$(brew --prefix fftw);$(brew --prefix zlib);$(brew --prefix libomp)"
+  -DCMAKE_TOOLCHAIN_FILE="$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake" \
+  -DOpenMP_ROOT="$HOME/vcpkg/installed/arm64-osx"
 ```
 
 The resulting binary is written to `build/kspaceFirstOrder-OMP`.

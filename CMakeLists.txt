@@ -60,6 +60,15 @@ else()
             $ENV{OpenMP_ROOT}
             $ENV{LIBOMP_ROOT}
             $ENV{LIBOMP_DIR}
+        )
+
+        if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+            list(APPEND _libomp_hint_paths
+                "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}"
+            )
+        endif()
+
+        list(APPEND _libomp_hint_paths
             /opt/homebrew/opt/libomp
             /usr/local/opt/libomp
             /opt/local/libomp
@@ -118,6 +127,15 @@ target_link_libraries(kspaceFirstOrder-OMP PRIVATE ZLIB::ZLIB)
 set(FFTW_SEARCH_ROOTS
     $ENV{FFTW_ROOT}
     $ENV{FFT_DIR}
+)
+
+if(DEFINED VCPKG_INSTALLED_DIR AND DEFINED VCPKG_TARGET_TRIPLET)
+    list(APPEND FFTW_SEARCH_ROOTS
+        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}"
+    )
+endif()
+
+list(APPEND FFTW_SEARCH_ROOTS
     /opt/homebrew/opt/fftw
     /usr/local/opt/fftw
     /opt/local
