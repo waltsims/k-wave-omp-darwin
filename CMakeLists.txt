@@ -78,21 +78,31 @@ endif()
 find_package(HDF5 REQUIRED COMPONENTS C HL)
 
 set(_hdf5_targets "")
-if(TARGET HDF5::HDF5_C)
-    list(APPEND _hdf5_targets HDF5::HDF5_C)
-elseif(TARGET HDF5::HDF5)
-    list(APPEND _hdf5_targets HDF5::HDF5)
-endif()
-if(TARGET HDF5::HDF5_HL)
-    list(APPEND _hdf5_targets HDF5::HDF5_HL)
-endif()
+foreach(_candidate
+        HDF5::HDF5_C
+        HDF5::HDF5_HL
+        HDF5::HDF5
+        hdf5::hdf5
+        hdf5::hdf5_hl)
+    if(TARGET ${_candidate})
+        list(APPEND _hdf5_targets ${_candidate})
+    endif()
+endforeach()
+list(REMOVE_DUPLICATES _hdf5_targets)
 
 if(_hdf5_targets)
     target_link_libraries(kspaceFirstOrder-OMP PRIVATE ${_hdf5_targets})
 else()
     message(WARNING "Falling back to legacy HDF5 variables; consider upgrading CMake or HDF5 package.")
     target_include_directories(kspaceFirstOrder-OMP PRIVATE ${HDF5_INCLUDE_DIRS})
-    target_link_libraries(kspaceFirstOrder-OMP PRIVATE ${HDF5_LIBRARIES})
+    set(_legacy_hdf5_libs
+        ${HDF5_LIBRARIES}
+        ${HDF5_C_LIBRARIES}
+        ${HDF5_HL_LIBRARIES}
+        ${HDF5_C_HL_LIBRARIES}
+    )
+    list(REMOVE_DUPLICATES _legacy_hdf5_libs)
+    target_link_libraries(kspaceFirstOrder-OMP PRIVATE ${_legacy_hdf5_libs})
 endif()
 
 find_package(ZLIB REQUIRED)
@@ -187,14 +197,12 @@ if(APPLE)
         get_filename_component(_lib_dir "${_lib}" DIRECTORY)
         list(APPEND _rpath_dirs "${_lib_dir}")
     endforeach()
-    if(HDF5_LIBRARIES)
-        foreach(_lib ${HDF5_LIBRARIES})
-            if(IS_ABSOLUTE "${_lib}")
-                get_filename_component(_lib_dir "${_lib}" DIRECTORY)
-                list(APPEND _rpath_dirs "${_lib_dir}")
-            endif()
-        endforeach()
-    endif()
+    foreach(_lib ${HDF5_LIBRARIES} ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} ${HDF5_C_HL_LIBRARIES})
+        if(IS_ABSOLUTE "${_lib}")
+            get_filename_component(_lib_dir "${_lib}" DIRECTORY)
+            list(APPEND _rpath_dirs "${_lib_dir}")
+        endif()
+    endforeach()
     if(LIBOMP_LIBRARY)
         get_filename_component(_lib_dir "${LIBOMP_LIBRARY}" DIRECTORY)
         list(APPEND _rpath_dirs "${_lib_dir}")
