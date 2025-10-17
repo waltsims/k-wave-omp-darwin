@@ -31,7 +31,7 @@ This copy of the software has been adapted for compilation on Apple M1 processor
     +--Utils         - Utility routines
     Changelog.md     - Change log
     License.md       - License file
-    Makefile         - GNU Makefile
+    CMakeLists.txt   - CMake build script
     Readme.md        - Read me
     Doxyfile         - Doxygen documentation file
     header_bg.png    - Doxygen logo
@@ -67,22 +67,25 @@ To install these libraries with Homebrew, run the following command:
 brew install hdf5 fftw zlib libomp
 ```
 
- 3. Select how to link the libraries. Static linking is preferred as it may be
-    a bit faster, however, on some systems (e.g, HPC clusters) it may be better
-    to use dynamic linking and use the system specific libraries at runtime.
-    ```bash
-     LINKING = STATIC
-    #LINKING = DYNAMIC
-    ```
+With the prerequisites ready, build the project using CMake:
 
- 6. Close the makefile and compile the source code by typing:
-    ```bash
-    make -j
-    ```
-    If you want to clean the distribution, type:
-    ```bash
-    make clean
-    ```
+```bash
+mkdir -p build
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix hdf5);$(brew --prefix fftw);$(brew --prefix zlib);$(brew --prefix libomp)"
+cmake --build build --parallel
+```
+
+If CMake cannot locate OpenMP automatically, pass the Homebrew prefix explicitly:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+  -DOpenMP_ROOT="$(brew --prefix libomp)" \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix hdf5);$(brew --prefix fftw);$(brew --prefix zlib);$(brew --prefix libomp)"
+```
+
+The resulting binary is written to `build/kspaceFirstOrder-OMP`.
+To clean the build artifacts, remove the `build` directory.
 
 ## Usage
 
@@ -90,5 +93,5 @@ The C++ codes offers a lot of parameters and output flags to be used. For more
 information, please type:
 
 ```bash
-./kspaceFirstOrder-OMP --help
+./build/kspaceFirstOrder-OMP --help
 ```
