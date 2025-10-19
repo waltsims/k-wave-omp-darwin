@@ -49,39 +49,28 @@ libraries.
 First [install x-code](https://developer.apple.com/xcode/). X-Code installs the Apple Clang compiler for M1.
 
 The code also relies on several libraries that are to be installed before
-compiling. We now use [vcpkg](https://github.com/microsoft/vcpkg) to supply the
-dependencies in a cross-platform way. Clone vcpkg (once) and bootstrap it:
+compiling. On macOS we assume the dependencies are available via
+[Homebrew](https://brew.sh/):
 
 ```bash
-git clone --depth 1 https://github.com/microsoft/vcpkg "$HOME/vcpkg"
-"$HOME/vcpkg/bootstrap-vcpkg.sh" -disableMetrics
+brew install fftw hdf5 libomp zlib
 ```
 
-Install the required libraries (use `x64-osx` instead of `arm64-osx` on Intel Macs):
-
-```bash
-$HOME/vcpkg/vcpkg install \
-  hdf5[szip,hl]:arm64-osx \
-  fftw3[float,openmp]:arm64-osx \
-  zlib:arm64-osx \
-  libomp:arm64-osx
-```
-
-With the prerequisites ready, build the project using CMake and the vcpkg toolchain:
+With those in place, configure and build using CMake. The script defaults to
+`/opt/homebrew` (falling back to `/usr/local`), so a standard Apple Silicon or
+Intel Homebrew install works out of the box:
 
 ```bash
 mkdir -p build
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_TOOLCHAIN_FILE="$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake"
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
 ```
 
-If CMake cannot locate OpenMP automatically, set the `OpenMP_ROOT` to the vcpkg install directory:
+If your Homebrew lives elsewhere, point CMake at it explicitly:
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_TOOLCHAIN_FILE="$HOME/vcpkg/scripts/buildsystems/vcpkg.cmake" \
-  -DOpenMP_ROOT="$HOME/vcpkg/installed/arm64-osx"
+  -DHOMEBREW_PREFIX=/custom/homebrew/prefix
 ```
 
 The resulting binary is written to `build/kspaceFirstOrder-OMP`.
