@@ -11,7 +11,7 @@ foreach(dir IN ITEMS Containers Hdf5 KSpaceSolver Logger MatrixClasses OutputStr
     add_subdirectory(${dir})
 endforeach()
 
-set(COMMON_FAST_MATH_FLAGS -O3 -ffast-math -fassociative-math)
+set(COMMON_FLOAT_FLAGS -O3 -fno-fast-math -ffp-contract=fast -fno-finite-math-only -fno-strict-aliasing)
 
 # TODO: create a better way to find homebrew
 set(HOMEBREW_PREFIX /opt/homebrew)
@@ -40,8 +40,8 @@ target_link_libraries(kspaceFirstOrder-OMP PRIVATE fftw3f fftw3f_omp hdf5 hdf5_h
 
 set(CPU_FLAGS -m64 -mtune=native)
 
-target_compile_options(kspaceFirstOrder-OMP PRIVATE ${COMMON_FAST_MATH_FLAGS} ${CPU_FLAGS} -g -Wall -Xpreprocessor -fopenmp)
-target_link_options(kspaceFirstOrder-OMP PRIVATE ${COMMON_FAST_MATH_FLAGS} ${CPU_FLAGS} -g -Xpreprocessor -fopenmp)
+target_compile_options(kspaceFirstOrder-OMP PRIVATE ${COMMON_FLOAT_FLAGS} ${CPU_FLAGS} -g -Wall -Xpreprocessor -fopenmp)
+target_link_options(kspaceFirstOrder-OMP PRIVATE ${COMMON_FLOAT_FLAGS} ${CPU_FLAGS} -g -Xpreprocessor -fopenmp)
 
 set_target_properties(kspaceFirstOrder-OMP PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
